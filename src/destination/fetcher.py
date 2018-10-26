@@ -14,44 +14,48 @@ class Fetch:
         self.browser = browser
 
     def batchCall(self, get_function, item_superset, batch_size, sleep_time):
+        outcome = []
         for itemset in getBatchesOfSize(item_superset, batch_size):
-            get_function(itemset, self.browser)
+            r = get_function(itemset, self.browser)
+            outcome.append(r)
             time.sleep(sleep_time)
 
     def singleCall(self, get_function, items, sleep_time):
+        outcome = []
         for item in items:
-            get_function(item, self.browser)
+            r = get_function(item, self.browser)
+            outcome.append(r)
             time.sleep(sleep_time)
 
     def get(self, country, itemIds):
         if country == 'CZ':
-            self.batchCall(self.getCZ, itemIds, 20, 5)
+            return self.batchCall(self.getCZ, itemIds, 20, 5)
         elif country == 'BR':
-            self.batchCall(self.getBR, itemIds, 50, 5)
+            return self.batchCall(self.getBR, itemIds, 50, 5)
         elif country == 'CN':
-            self.batchCall(self.getCanada, itemIds, 24, 5)
+            return self.batchCall(self.getCanada, itemIds, 24, 5)
         elif country == 'PT':
-            self.batchCall(self.getPortugal, itemIds, 25, 5)
+            return self.batchCall(self.getPortugal, itemIds, 25, 5)
         elif country == 'KW':
-            self.singleCall(self.getKuwait, itemIds, 5)
+            return self.singleCall(self.getKuwait, itemIds, 5)
         elif country == 'CH':
-            self.singleCall(self.getChile, itemIds, 5)
+            return self.singleCall(self.getChile, itemIds, 5)
         elif country == 'LK':
-            self.singleCall(self.getSriLanka, itemIds, 5)
+            return self.singleCall(self.getSriLanka, itemIds, 5)
         else:
             print 'nothing'
 
     def getCZ(self, itemIds, browser):
-        result = None
+        output = []
         url = 'https://www.postaonline.cz/en/trackandtrace/-/zasilka/cislo?parcelNumbers={0}'.format(','.join(itemIds))
         browser.get(url)
         try:
-            result = WebDriverWait(browser, 100).until(
+            search_result = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "parcelInfo"))
             )
         finally:
-            if result:
-                tbody = result.get_attribute('innerHTML')
+            if search_result:
+                tbody = search_result.get_attribute('innerHTML')
                 soup = BeautifulSoup(tbody, 'html.parser')
 
                 for row in soup.tbody.findChildren(['tr']):
@@ -63,12 +67,14 @@ class Fetch:
                     else:
                         item_delivered = False
                     date_delivered = columns[1].text.strip()
-                    print (item_id, item_delivered, date_delivered)
+                    output.append([item_id, item_delivered, date_delivered])
 
             else:
-                return result
+                print 'Country: {0}, Website has changed.'.format('Czech')
+        return output
 
     def getBR(self, itemIds, browser):
+        output = []
         main_page = 'https://www2.correios.com.br/sistemas/rastreamento/default.cfm'
         browser.get(main_page)
 
@@ -96,9 +102,9 @@ class Fetch:
                 else:
                     item_delivered = False
                 date_delivered = columns[3].text.strip().split(' ')[0]
-                print (item_id, item_delivered, date_delivered)
+                output.append([item_id, item_delivered, date_delivered])
 
-
+        return output
 
 
     def getIL(self, itemId, browser):
@@ -143,6 +149,7 @@ class Fetch:
         return results[0].text
 
     def getSriLanka(self, itemId, browser):
+        output = []
         url = 'http://globaltracktrace.ptc.post/gtt.web/Search.aspx'
         browser.get(url)
 
@@ -170,17 +177,23 @@ class Fetch:
             else:
                 item_delivered = False
             date_delivered = soup.find_all('table')[1].find_all('tr')[1].td.text
-            print (item_id, item_delivered, date_delivered)
+            output.append([item_id, item_delivered, date_delivered])
+        return output
 
     def getCanada(self, itemIds, browser):
         # json response
+        output = []
         url = 'https://www.canadapost.ca/trackweb/rs/track/json/package?pins={0}'.format(','.join(itemIds))
         r = requests.get(url)
         rj = r.json()
         for item in rj:
-            print(item["pin"], item["delivered"], item["actualDlvryDate"])
+            item_id, item_delivered, date_delivered = item["pin"], item["delivered"], item["actualDlvryDate"]
+            output.append([item_id, item_delivered, date_delivered])
+        return output
 
     def getPortugal(self, itemIds, browser):
+        output = []
+
         items_to_search = ','.join(itemIds)
         url = "https://www.ctt.pt/feapl_2/app/open/objectSearch/objectSearch.jspx?lang=01"
 
@@ -215,10 +228,12 @@ class Fetch:
                 else:
                     item_delivered = False
                 date_delivered = columns[1].text.strip()
-                print (item_id, item_delivered, date_delivered)
-
+                output.append([item_id, item_delivered, date_delivered])
+        return output
 
     def getKuwait(self, itemId, browser):
+        output = []
+
         url = "http://tracking.moc.gov.kw/english/"
         browser.get(url)
 
@@ -249,9 +264,11 @@ class Fetch:
             else:
                 item_delivered = False
             date_delivered = columns[0].text.strip()
-            print (item_id, item_delivered, date_delivered)
+            output.append([item_id, item_delivered, date_delivered])
+        return output
 
     def getChile(self, itemId, browser):
+        output = []
         url = 'https://www.correos.cl/SitePages/seguimiento/seguimiento.aspx?envio={0}'.format(itemId)
         browser.get(url)
 
@@ -277,7 +294,8 @@ class Fetch:
             else:
                 item_delivered = False
             date_delivered = columns[1].text.strip()
-            print (item_id, item_delivered, date_delivered)
+            output.append([item_id, item_delivered, date_delivered])
+        return output
 
     def getCroatia(self, itemIds, browser):
         # html response

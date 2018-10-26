@@ -1,5 +1,5 @@
 from destination.fetcher import Fetch
-from interact_csv import getSearchDict
+from interact_csv import getSearchDict, writeDictToCSV
 
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
@@ -12,11 +12,16 @@ browser = Chrome(options=opts)
 f = Fetch(browser)
 
 to_search = getSearchDict()
+output = {}
 
 for destination in to_search:
-    print 'Country : {0}'.format(destination)
-    f.get(destination, to_search[destination])
+    print 'Processing Country : {0} with {1} items'.format(destination, len(to_search[destination]))
+    r = f.get(destination, to_search[destination])
+    if not output.get(destination):
+        output[destination] = []
+    output[destination].append(r)
 
+writeDictToCSV(output)
 
 browser.close()
 quit()

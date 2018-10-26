@@ -16,3 +16,13 @@ def getSearchDict():
                 to_search[destination] = []
             to_search[destination].append(itemId)
     return to_search
+
+def writeDictToCSV(data):
+    with open('result.csv', 'w') as csvfile:
+        fieldnames = ['destination', 'itemId', 'delivered', 'time']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for destination in data:
+            for row in data[destination]:
+                writer.writerow({'destination': destination, 'itemId': row[0], 'delivered': row[1], 'time': row[2]})
