@@ -16,10 +16,7 @@ output = {}
 
 for destination in to_search:
     print 'Processing Country : {0} with {1} items'.format(destination, len(to_search[destination]))
-    r = f.get(destination, to_search[destination])
-    if not output.get(destination):
-        output[destination] = []
-    output[destination].append(r)
+    output[destination] = f.get(destination, to_search[destination])
 
 writeDictToCSV(output)
 

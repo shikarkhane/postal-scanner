@@ -17,15 +17,17 @@ class Fetch:
         outcome = []
         for itemset in getBatchesOfSize(item_superset, batch_size):
             r = get_function(itemset, self.browser)
-            outcome.append(r)
+            outcome.extend(r)
             time.sleep(sleep_time)
+        return outcome
 
     def singleCall(self, get_function, items, sleep_time):
         outcome = []
         for item in items:
             r = get_function(item, self.browser)
-            outcome.append(r)
+            outcome.extend(r)
             time.sleep(sleep_time)
+        return outcome
 
     def get(self, country, itemIds):
         if country == 'CZ':
