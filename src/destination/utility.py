@@ -18,3 +18,17 @@ def removeTagsOfClass(soup, class_):
     for x in soup.find_all(class_=class_):
         x.extract()
     return soup
+
+def getBatchesOfSize(data, size):
+    result = []
+    div = len(data) / size
+    float_div = float(len(data)) / size
+
+    if float_div > div:
+        div = div + 1
+
+    for i in range(div):
+        result.append(data[i * size: (i+1) * size])
+
+    return result
+

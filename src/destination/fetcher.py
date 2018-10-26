@@ -4,24 +4,49 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
-from utility import stringExistsIn, removeEmptyTags, removeTagsOfClass
+from utility import stringExistsIn, removeEmptyTags, removeTagsOfClass, getBatchesOfSize
 import requests
+import time
 
 # 5 out of 17 have captcha
 class Fetch:
-    def __init__(self, country):
-        self.country = country
+    def __init__(self, browser):
+        self.browser = browser
 
-    def get(self, itemIds, browser):
-        if self.country == 'CZ':
-            return self.getCZ(itemIds)
+    def batchCall(self, get_function, item_superset, batch_size, sleep_time):
+        for itemset in getBatchesOfSize(item_superset, batch_size):
+            get_function(itemset, self.browser)
+            time.sleep(sleep_time)
+
+    def singleCall(self, get_function, items, sleep_time):
+        for item in items:
+            get_function(item, self.browser)
+            time.sleep(sleep_time)
+
+    def get(self, country, itemIds):
+        if country == 'CZ':
+            self.batchCall(self.getCZ, itemIds, 20, 5)
+        elif country == 'BR':
+            self.batchCall(self.getBR, itemIds, 50, 5)
+        elif country == 'CN':
+            self.batchCall(self.getCanada, itemIds, 24, 5)
+        elif country == 'PT':
+            self.batchCall(self.getPortugal, itemIds, 25, 5)
+        elif country == 'KW':
+            self.singleCall(self.getKuwait, itemIds, 5)
+        elif country == 'CH':
+            self.singleCall(self.getChile, itemIds, 5)
+        elif country == 'LK':
+            self.singleCall(self.getSriLanka, itemIds, 5)
+        else:
+            print 'nothing'
 
     def getCZ(self, itemIds, browser):
         result = None
         url = 'https://www.postaonline.cz/en/trackandtrace/-/zasilka/cislo?parcelNumbers={0}'.format(','.join(itemIds))
         browser.get(url)
         try:
-            result = WebDriverWait(browser, 10).until(
+            result = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "parcelInfo"))
             )
         finally:
@@ -48,14 +73,14 @@ class Fetch:
         browser.get(main_page)
 
         try:
-            input_area = WebDriverWait(browser, 10).until(
+            input_area = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "objetos"))
             )
             input_area.clear()
             input_area.send_keys(','.join(itemIds))
             browser.find_element_by_id("btnPesq").click()
 
-            search_results = WebDriverWait(browser, 10).until(
+            search_results = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.CLASS_NAME, "tblSroResultado"))
             )
 
@@ -82,7 +107,7 @@ class Fetch:
         browser.get(main_page)
 
         try:
-            search_box = WebDriverWait(browser, 10).until(
+            search_box = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "ItemCode"))
             )
             search_box.clear()
@@ -90,7 +115,7 @@ class Fetch:
 
             browser.find_element_by_id("btn-ItemCode").click()
 
-            search_results = WebDriverWait(browser, 30).until(
+            search_results = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "result"))
             )
         except Exception as e:
@@ -122,7 +147,7 @@ class Fetch:
         browser.get(url)
 
         try:
-            search_box = WebDriverWait(browser, 10).until(
+            search_box = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "txtItemID"))
             )
             search_box.clear()
@@ -162,7 +187,7 @@ class Fetch:
         browser.get(url)
 
         try:
-            search_box = WebDriverWait(browser, 10).until(
+            search_box = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "objects"))
             )
             search_box.clear()
@@ -198,7 +223,7 @@ class Fetch:
         browser.get(url)
 
         try:
-            search_box = WebDriverWait(browser, 10).until(
+            search_box = WebDriverWait(browser, 100).until(
                 EC.presence_of_element_located((By.ID, "itemid"))
             )
             search_box.clear()
