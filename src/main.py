@@ -1,3 +1,4 @@
+import logging
 from destination.fetcher import Fetch
 from interact_csv import getSearchDict, writeDictToCSV
 
@@ -9,17 +10,25 @@ opts = Options()
 browser = Chrome(options=opts)
 
 
-f = Fetch(browser)
+try:
+    f = Fetch(browser)
 
-to_search = getSearchDict()
-output = {}
+    to_search = getSearchDict()
+    output = {}
 
-for destination in to_search:
-    print ('Processing Country : {0} with {1} items'.format(destination, len(to_search[destination])))
-    output[destination] = f.get(destination, to_search[destination])
+    for destination in to_search:
+        try:
+            print ('Processing Country : {0} with {1} items'.format(destination, len(to_search[destination])))
+            output[destination] = f.get(destination, to_search[destination])
+        except Exception,e:
+            logging.exception(e)
 
-writeDictToCSV(output)
+    writeDictToCSV(output)
 
-browser.close()
-quit()
+except Exception, e:
+    logging.exception(e)
+
+finally:
+    browser.close()
+    quit()
 

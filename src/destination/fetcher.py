@@ -8,6 +8,7 @@ from utility import stringExistsIn, removeEmptyTags, removeTagsOfClass, getBatch
 import requests
 import time
 
+
 # 5 out of 17 have captcha
 class Fetch:
     def __init__(self, browser):
@@ -45,7 +46,7 @@ class Fetch:
         elif country == 'LK':
             return self.singleCall(self.getSriLanka, itemIds, 5)
         else:
-            print 'nothing'
+            print ('nothing')
 
     def getCZ(self, itemIds, browser):
         output = []
@@ -72,7 +73,7 @@ class Fetch:
                     output.append([item_id, item_delivered, date_delivered])
 
             else:
-                print 'Country: {0}, Website has changed.'.format('Czech')
+                print ('Country: {0}, Website has changed.'.format('Czech'))
         return output
 
     def getBR(self, itemIds, browser):
