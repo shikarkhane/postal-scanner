@@ -20,7 +20,7 @@ try:
         try:
             print ('Processing Country : {0} with {1} items'.format(destination, len(to_search[destination])))
             output[destination] = f.get(destination, to_search[destination])
-        except Exception,e:
+        except Exception, e:
             logging.exception(e)
 
     writeDictToCSV(output)
