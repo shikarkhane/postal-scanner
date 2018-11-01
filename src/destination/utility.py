@@ -1,5 +1,5 @@
 import re
-
+import math
 
 def stringExistsIn(pattern, string):
     res = re.findall(pattern, string)
@@ -21,7 +21,7 @@ def removeTagsOfClass(soup, class_):
 
 def getBatchesOfSize(data, size):
     result = []
-    div = int(len(data)) / size
+    div = math.floor(len(data) / size)
     float_div = float(len(data)) / size
 
     if float_div > div:
