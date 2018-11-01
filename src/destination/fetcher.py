@@ -4,7 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
-from utility import stringExistsIn, removeEmptyTags, removeTagsOfClass, getBatchesOfSize
+from destination.utility import stringExistsIn, removeEmptyTags, removeTagsOfClass, getBatchesOfSize
 import requests
 import time
 
