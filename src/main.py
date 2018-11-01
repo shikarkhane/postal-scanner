@@ -9,6 +9,8 @@ opts = Options()
 #assert opts.headless  # Operating in headless mode
 browser = Chrome(options=opts)
 
+# Log everything, and send it to stderr.
+logging.basicConfig(filename="error.log",level=logging.INFO,format='%(asctime)s %(message)s')
 
 try:
     f = Fetch(browser)
