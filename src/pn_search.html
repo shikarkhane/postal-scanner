@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
+
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
+
+<script>
+var itemList = [];
+var filteredItemList = [];
+var totalItems = 0;
+
+var eventsDict = {};
+var eventText = "eventCode";
+
+$(document).ready(function()
+{
+    //console.log('i am loaded');
+
+    $( "#eventFilter" ).change(function() {
+    	//console.log($( this ).val());
+    	/*
+    	var filter_el = $("#filter-for-listview");
+	    var filter_val = filter_el.val();
+	    var filter_query = $(this).val();
+	    filter_el.val(filter_query);
+	    filter_el.trigger("change");
+		*/
+		dofilterItemList($(this).val());
+		renderFilteredItemlist();
+    });
+
+});
+function updateEventFilter(){
+	$('#eventFilter').html('');
+
+	$.each( eventsDict, function( key, value ) {
+		$('#eventFilter').append('<option name="'+ key +'" value="' + key + '">' + value + '</option>');
+	});
+
+}
+function getEventCodeList(events){
+
+	$.each(events, function( index, value ) {
+		var i = events[index];
+		if (!(i.eventCode in eventsDict)){
+			eventsDict[i.eventCode] = i.eventDescription;
+		}
+	});
+};
+function processResponse(itemId, res, destination){
+		var base = res.TrackingInformationResponse.shipments;
+		if ( base.length === 0 ){
+			return false;
+		}
+		var node = base[0];
+		var status = 'Unknown';
+		if ( node.hasOwnProperty('status')){
+			status = node.status;
+		}
+
+    	if ( node.items.length === 0){
+    		return false;
+    	}
+    	if (!(node.items[0].hasOwnProperty('events') )){
+    		return false;
+    	}
+    	var events = node.items[0].events;
+
+    	//find unique events to populate drop down
+    	getEventCodeList(events);
+
+    	var lastEvent = events[events.length-1];
+    	var eventCode = lastEvent.eventCode;
+    	var actualDesc = lastEvent.eventDescription;
+    	var eventTime = lastEvent.eventTime;
+    	//console.log(status);
+
+    	//append to itemList which will be rendered
+    	var o = {};
+		o.destination= destination;
+		o.itemId = itemId;
+    	o.eventCode = eventCode;
+    	o.actualDesc = actualDesc;
+    	o.eventTime = eventTime;
+    	o.events = events;
+    	itemList.push(o);
+
+    	updateEventFilter();
+};
+function eventCodeExists(eventCode, events){
+	var result = false;
+	$.each(events, function( index, value ) {
+		var i = events[index];
+		if ( i.eventCode === eventCode){
+			result = true;
+		}
+	});
+	return result;
+}
+
+function dofilterItemList(eventCode){
+	filteredItemList = [];
+	$.each(itemList, function( index, value ) {
+		var i = itemList[index];
+    	if (eventCodeExists(eventCode, i.events)){
+    		filteredItemList.push(i);
+    	}
+    });
+}
+
+function renderFilteredItemlist(){
+	$('#status-results').html('');
+
+	$.each(filteredItemList, function( index, value ) {
+		var i = filteredItemList[index];
+    	$('#status-results').append('<li>' + i.destination + ' - ' + i.itemId + ' - ' + i.actualDesc+ ' - ' + i.eventTime+ '</li>');
+    });
+
+}
+function getStatus(itemId, destination){
+    var INTERNAL_URL = ''+ itemId + '&locale=en&channelId=CustomerServicesView';
+	var EXTERNAL_URL = 'https://api2.postnord.com/rest/shipment/v2/trackandtrace/findByIdentifier.json?apikey=b458b1544bd1535b701997313957f52c&id=' + itemId + '&locale=en';
+
+    var url = INTERNAL_URL;
+
+ $.ajax({
+   type: 'GET',
+   crossDomain: true,
+   dataType: 'jsonp',
+   url: url,
+   success: function(res){
+   		processResponse(itemId, res, destination);
+   },
+   complete: function(res){
+   		totalItems = totalItems - 1;
+   		if ( totalItems === 0){
+   			filteredItemList = itemList;
+   			//time to render the full list
+   			renderFilteredItemlist();
+   		}
+   }
+});
+
+}
+
+	 function handleFileSelect()
+  {
+    if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+      console.log('The File APIs are not fully supported in this browser.');
+      return;
+    }
+
+    input = document.getElementById('fileinput');
+    if (!input) {
+      console.log("Um, couldn't find the fileinput element.");
+    }
+    else if (!input.files) {
+      console.log("This browser doesn't seem to support the `files` property of file inputs.");
+    }
+    else if (!input.files[0]) {
+      console.log("Please select a file before clicking 'Load'");
+    }
+    else {
+      file = input.files[0];
+      parseExcel(file);
+    }
+  }
+
+  function parseExcel(file) {
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+      var data = e.target.result;
+      var workbook = XLSX.read(data, {
+        type: 'binary'
+      });
+
+      workbook.SheetNames.forEach(function(sheetName) {
+        // Here is your object
+        var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+        var json_object = JSON.stringify(XL_row_object);
+        //console.log(json_object);
+        var items = JSON.parse(json_object);
+        totalItems = items.length;
+        $.each(items, function( index, value ) {
+        	var row = items[index];
+		  getStatus(row["Item number"], row["Destination"]);
+		  if ( index > 10){
+		  	return false;
+		  }
+		});
+
+      })
+
+    };
+
+    reader.onerror = function(ex) {
+      console.log(ex);
+    };
+
+    reader.readAsBinaryString(file);
+  };
+</script>
+
+    <title>dl</title>
+  </head>
+  <body>
+
+  	<input type="file" id="fileinput"/>
+<input type='button' id='btnLoad' value='Load' onclick=handleFileSelect()>
+<div id="editor"></div>
+
+
+<form>
+	<label>Event filter:
+  <select id="eventFilter">
+  </select>
+</label>
+    <input id="filter-for-listview" data-type="search" placeholder="Type to search...">
+</form>
+<ul id="status-results" data-role="listview" data-inset="true" data-filter="true" data-input="#filter-for-listview">
+
+</ul>
+  </body>
+</html>
