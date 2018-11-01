@@ -21,7 +21,7 @@ def removeTagsOfClass(soup, class_):
 
 def getBatchesOfSize(data, size):
     result = []
-    div = len(data) / size
+    div = int(len(data)) / size
     float_div = float(len(data)) / size
 
     if float_div > div:
