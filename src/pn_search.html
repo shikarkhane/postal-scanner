@@ -128,7 +128,7 @@ function renderFilteredItemlist(){
 
 }
 function getStatus(itemId, destination){
-    var INTERNAL_URL = ''+ itemId + '&locale=en&channelId=CustomerServicesView';
+    var INTERNAL_URL = 'http://internal-nginx-elb3-2129495947.eu-west-1.elb.amazonaws.com/rest/internal/v1/trackandtrace/ntt/v5/shipment?id='+ itemId + '&locale=en&channelId=CustomerServicesView';
 	var EXTERNAL_URL = 'https://api2.postnord.com/rest/shipment/v2/trackandtrace/findByIdentifier.json?apikey=b458b1544bd1535b701997313957f52c&id=' + itemId + '&locale=en';
 
     var url = INTERNAL_URL;

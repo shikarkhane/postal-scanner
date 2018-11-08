@@ -1,3 +1,4 @@
+import sys
 import logging
 from destination.fetcher import Fetch
 from interact_csv import getSearchDict, writeDictToCSV
@@ -7,7 +8,13 @@ from selenium.webdriver.chrome.options import Options
 opts = Options()
 #opts.headless = True
 #assert opts.headless  # Operating in headless mode
-browser = Chrome(options=opts)
+
+if ( str(sys.platform).startswith('win') ):
+    browser = Chrome(executable_path='.\\drivers\\win\\chromedriver.exe', options=opts)
+elif ( str(sys.platform).startswith('darwin') ):
+    browser = Chrome(executable_path='./drivers/mac/chromedriver', options=opts)
+else:
+    browser = Chrome(executable_path='./drivers/unix/chromedriver', options=opts)
 
 # Log everything, and send it to stderr.
 logging.basicConfig(filename="error.log",level=logging.INFO,format='%(asctime)s %(message)s')
