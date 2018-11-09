@@ -65,12 +65,12 @@ class Fetch:
                     columns = row.findChildren(['td'])
                     item_id = columns[0].strong.a.text.strip()
                     item_status = columns[0].text.strip()
-                    if item_status.find('The consignment was delivered') >= 0:
+                    if item_status.find('The consignment was delivered'):
                         item_delivered = True
                     else:
                         item_delivered = False
                     date_delivered = columns[1].text.strip()
-                    output.append([item_id, item_delivered, date_delivered])
+                    output.append([item_id, item_delivered, date_delivered, item_status])
 
             else:
                 print ('Country: {0}, Website has changed.'.format('Czech'))
@@ -100,12 +100,12 @@ class Fetch:
                 columns = row.findChildren(['td'])
                 item_id = columns[1].text.strip()
                 item_status = columns[2].text.strip()
-                if stringExistsIn('Objeto entregue ao destinat.rio', item_status) >= 0:
+                if stringExistsIn('Objeto entregue ao destinat.rio', item_status):
                     item_delivered = True
                 else:
                     item_delivered = False
                 date_delivered = columns[3].text.strip().split(' ')[0]
-                output.append([item_id, item_delivered, date_delivered])
+                output.append([item_id, item_delivered, date_delivered, item_status])
 
         return output
 
@@ -175,12 +175,12 @@ class Fetch:
             soup = BeautifulSoup(table, 'html.parser')
             item_id = itemId
             item_status = soup.find_all('table')[0].text.strip()
-            if stringExistsIn('Delivered', item_status) >= 0:
+            if stringExistsIn('Delivered', item_status):
                 item_delivered = True
             else:
                 item_delivered = False
             date_delivered = soup.find_all('table')[1].find_all('tr')[1].td.text
-            output.append([item_id, item_delivered, date_delivered])
+            output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
     def getCanada(self, itemIds, browser):
@@ -191,7 +191,7 @@ class Fetch:
         rj = r.json()
         for item in rj:
             item_id, item_delivered, date_delivered = item["pin"], item["delivered"], item["actualDlvryDate"]
-            output.append([item_id, item_delivered, date_delivered])
+            output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
     def getPortugal(self, itemIds, browser):
@@ -226,12 +226,12 @@ class Fetch:
                 columns = row.findChildren(['td'])
                 item_id = columns[0].text.strip()
                 item_status = columns[4].text.strip()
-                if stringExistsIn('Item delivered', item_status) >= 0:
+                if stringExistsIn('Item delivered', item_status):
                     item_delivered = True
                 else:
                     item_delivered = False
                 date_delivered = columns[1].text.strip()
-                output.append([item_id, item_delivered, date_delivered])
+                output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
     def getKuwait(self, itemId, browser):
@@ -262,12 +262,12 @@ class Fetch:
             columns = last_row.findChildren(['td'])
             item_id = itemId
             item_status = columns[3].text.strip()
-            if stringExistsIn('Deliver item', item_status) >= 0:
+            if stringExistsIn('Deliver item', item_status):
                 item_delivered = True
             else:
                 item_delivered = False
             date_delivered = columns[0].text.strip()
-            output.append([item_id, item_delivered, date_delivered])
+            output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
     def getChile(self, itemId, browser):
@@ -292,12 +292,12 @@ class Fetch:
             columns = first_row.findChildren(['td'])
             item_id = itemId
             item_status = columns[0].text.strip()
-            if stringExistsIn('ENVIO ENTREGADO', item_status) >= 0:
+            if stringExistsIn('ENVIO ENTREGADO', item_status):
                 item_delivered = True
             else:
                 item_delivered = False
             date_delivered = columns[1].text.strip()
-            output.append([item_id, item_delivered, date_delivered])
+            output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
     def getCroatia(self, itemIds, browser):
