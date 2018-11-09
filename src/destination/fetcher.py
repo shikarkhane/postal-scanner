@@ -35,7 +35,7 @@ class Fetch:
             return self.batchCall(self.getCZ, itemIds, 20, 5)
         elif country == 'BR':
             return self.batchCall(self.getBR, itemIds, 50, 5)
-        elif country == 'CN':
+        elif country == 'CA':
             return self.batchCall(self.getCanada, itemIds, 24, 5)
         elif country == 'PT':
             return self.batchCall(self.getPortugal, itemIds, 25, 5)
@@ -65,7 +65,7 @@ class Fetch:
                     columns = row.findChildren(['td'])
                     item_id = columns[0].strong.a.text.strip()
                     item_status = columns[0].text.strip()
-                    if item_status.find('The consignment was delivered'):
+                    if item_status.find('The consignment was delivered') or item_status.find('The consignment was put in delivery box'):
                         item_delivered = True
                     else:
                         item_delivered = False
