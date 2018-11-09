@@ -179,7 +179,10 @@ class Fetch:
                 item_delivered = True
             else:
                 item_delivered = False
-            date_delivered = soup.find_all('table')[1].find_all('tr')[1].td.text
+            date_delivered = soup.find_all('table')[1].find_all('tr')[-1].td.text
+            # better status for analysis
+            statusTag = soup.find_all('table')[1].find_all('tr')[-1].find_all('td')
+            item_status = statusTag[1].text + statusTag[3].text
             output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
