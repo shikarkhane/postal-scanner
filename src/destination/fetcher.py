@@ -193,7 +193,8 @@ class Fetch:
         r = requests.get(url)
         rj = r.json()
         for item in rj:
-            item_id, item_delivered, date_delivered = item["pin"], item["delivered"], item["actualDlvryDate"]
+            item_id, item_delivered, date_delivered, item_status = \
+                item["pin"], item["delivered"], item["actualDlvryDate"], item["status"]
             output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
