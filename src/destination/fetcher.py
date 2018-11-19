@@ -49,6 +49,8 @@ class Fetch:
             return self.singleCall(self.getKazakistan, itemIds, 5)
         elif country == 'SA':
             return self.singleCall(self.getSaudiArabia, itemIds, 5)
+        elif country == 'GR':
+            return self.batchCall(self.getGreece, itemIds, 5, 5)
         else:
             print ('nothing')
 
@@ -366,9 +368,47 @@ class Fetch:
 
     def getGreece(self, itemIds, browser):
         # html response
-        url = 'https://www.elta.gr/en-us/personal/tracktrace.aspx?qc={0}'.format(','.join(itemIds))
-        results = browser.find_element_by_id('parcelInfo')
-        return results[0].text
+        output = []
+        url = 'https://www.elta.gr/en-us/personal/tracktrace.aspx'
+        items_to_search = '\n'.join(itemIds)
+        browser.get(url)
+
+        try:
+            search_box = WebDriverWait(browser, 100).until(
+                EC.presence_of_element_located((By.ID, "dnn_ctr1554_View_txtInputCode"))
+            )
+            search_box.clear()
+            search_box.send_keys(items_to_search)
+
+            browser.find_element_by_id("dnn_ctr1554_View_btnSubmit").click()
+
+            search_results = WebDriverWait(browser, 30).until(
+                EC.presence_of_element_located((By.ID, "printme"))
+            )
+        except Exception as e:
+            print (e)
+        finally:
+            table = search_results.get_attribute('innerHTML')
+            soup = BeautifulSoup(table, 'html.parser')
+            soup = removeEmptyTags(soup)
+            soup = removeTagsOfClass(soup, 'hide')
+
+            for t in soup.find_all('table'):
+                rows = [row for row in t.find_all('tr')]
+                item_id = rows[0].text.split(':')[1].strip()
+
+                #latest event
+                row = rows[2]
+
+                columns = row.findChildren(['td'])
+                item_status = columns[2].text.strip()
+                if stringExistsIn('FINAL DELIVERY', item_status):
+                    item_delivered = True
+                else:
+                    item_delivered = False
+                date_delivered = columns[0].text.strip()
+                output.append([item_id, item_delivered, date_delivered, item_status])
+        return output
 
     def getThailand(self, itemIds, browser):
         # html response
