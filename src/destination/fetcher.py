@@ -340,13 +340,28 @@ class Fetch:
         output = []
         url = 'https://sp.com.sa/_LAYOUTS/15/SaudiPost/Handlers/ToolsHandler.ashx?tool=TT&language=en&trackNo={0}'\
             .format(itemId)
-        r = requests.get(url)
-        rj = r.json()
-        item = rj['TrackingInfo'][-1]
-        item_id, item_delivered, date_delivered, item_status = \
-            itemId, stringExistsIn('Delivered', item["MainEventDescription"]), \
-            item["EventDate"], item["EventDescription"]
-        output.append([item_id, item_delivered, date_delivered, item_status])
+
+        browser.get(url)
+
+        try:
+            json_data = browser.page_source
+
+        except Exception as e:
+            print(e)
+        finally:
+            soup = BeautifulSoup(json_data, 'html.parser')
+            data = json.loads(soup.body.text)
+            item = data['TrackingInfo'][-1]
+            item_id = itemId
+            item_status = item['MainEventDescription']
+            if stringExistsIn('Delivered', item_status):
+                item_delivered = True
+            else:
+                item_delivered = False
+            date_delivered = item["EventDate"]
+            # better status for analysis
+            item_status = item['EventDescription']
+            output.append([item_id, item_delivered, date_delivered, item_status])
         return output
 
     def getGreece(self, itemIds, browser):
