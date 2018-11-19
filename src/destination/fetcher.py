@@ -47,6 +47,8 @@ class Fetch:
             return self.singleCall(self.getSriLanka, itemIds, 5)
         elif country == 'KZ':
             return self.singleCall(self.getKazakistan, itemIds, 5)
+        elif country == 'SA':
+            return self.singleCall(self.getSaudiArabia, itemIds, 5)
         else:
             print ('nothing')
 
@@ -333,11 +335,19 @@ class Fetch:
         results = browser.find_element_by_id('parcelInfo')
         return results[0].text
 
-    def getSaudiArabia(self, itemIds, browser):
+    def getSaudiArabia(self, itemId, browser):
         # html response
-        url = 'https://sp.com.sa/en/Electronic/Pages/TrackShipment.aspx?k={0}'.format(','.join(itemIds))
-        results = browser.find_element_by_id('parcelInfo')
-        return results[0].text
+        output = []
+        url = 'https://sp.com.sa/_LAYOUTS/15/SaudiPost/Handlers/ToolsHandler.ashx?tool=TT&language=en&trackNo={0}'\
+            .format(itemId)
+        r = requests.get(url)
+        rj = r.json()
+        item = rj['TrackingInfo'][-1]
+        item_id, item_delivered, date_delivered, item_status = \
+            itemId, stringExistsIn('Delivered', item["MainEventDescription"]), \
+            item["EventDate"], item["EventDescription"]
+        output.append([item_id, item_delivered, date_delivered, item_status])
+        return output
 
     def getGreece(self, itemIds, browser):
         # html response
