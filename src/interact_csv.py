@@ -19,11 +19,12 @@ def getSearchDict():
 
 def writeDictToCSV(data):
     with open('result.csv', 'w') as csvfile:
-        fieldnames = ['destination', 'itemId', 'delivered', 'time']
+        fieldnames = ['destination', 'itemId', 'delivered', 'time', 'status']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
 
         for destination in data:
             for row in data[destination]:
-                writer.writerow({'destination': destination, 'itemId': row[0], 'delivered': row[1], 'time': row[2]})
+                writer.writerow({'destination': destination, 'itemId': row[0], 'delivered': row[1],
+                                 'time': row[2], 'status': row[3]})
