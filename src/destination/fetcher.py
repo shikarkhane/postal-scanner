@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from destination.utility import stringExistsIn, removeEmptyTags, removeTagsOfClass, getBatchesOfSize
 import requests
 import time
-
+import json
 
 # 5 out of 17 have captcha
 class Fetch:
@@ -45,6 +45,8 @@ class Fetch:
             return self.singleCall(self.getChile, itemIds, 5)
         elif country == 'LK':
             return self.singleCall(self.getSriLanka, itemIds, 5)
+        elif country == 'KZ':
+            return self.singleCall(self.getKazakistan, itemIds, 5)
         else:
             print ('nothing')
 
@@ -144,12 +146,31 @@ class Fetch:
         results = browser.find_element_by_id('parcelInfo')
         return results[0].text
 
-    def getKazakistan(self, itemIds, browser):
-        # html response
-        # couldnt get response
-        url = 'https://post.kz/mail/search/track/{0}/detail'.format(','.join(itemIds))
-        results = browser.find_element_by_id('parcelInfo')
-        return results[0].text
+    def getKazakistan(self, itemId, browser):
+        output = []
+        url = 'https://post.kz/external-api/tracking/api/v2/{0}'.format(itemId)
+        browser.get(url)
+
+        try:
+            json_data = browser.page_source
+
+        except Exception as e:
+            print (e)
+        finally:
+            soup = BeautifulSoup(json_data, 'html.parser')
+            item = json.loads(soup.body.text)
+            item_id = itemId
+            item_status = item['status_code']
+            if stringExistsIn('D', item_status):
+                item_delivered = True
+            else:
+                item_delivered = False
+            date_delivered = item["delivery"]["date"]
+            # better status for analysis
+            item_status = item['x_status_code']
+            output.append([item_id, item_delivered, date_delivered, item_status])
+        return output
+
 
     def getSriLanka(self, itemId, browser):
         output = []
