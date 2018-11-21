@@ -8,6 +8,11 @@ from destination.utility import stringExistsIn, removeEmptyTags, removeTagsOfCla
 import requests
 import time
 import json
+import logging
+
+# Log everything, and send it to stderr.
+logging.basicConfig(filename="error.log",level=logging.INFO,format='%(asctime)s %(message)s')
+
 
 # 5 out of 17 have captcha
 class Fetch:
@@ -68,15 +73,20 @@ class Fetch:
                 soup = BeautifulSoup(tbody, 'html.parser')
 
                 for row in soup.tbody.findChildren(['tr']):
-                    columns = row.findChildren(['td'])
-                    item_id = columns[0].strong.a.text.strip()
-                    item_status = columns[0].text.strip()
-                    if item_status.find('The consignment was delivered') or item_status.find('The consignment was put in delivery box'):
-                        item_delivered = True
-                    else:
-                        item_delivered = False
-                    date_delivered = columns[1].text.strip()
-                    output.append([item_id, item_delivered, date_delivered, item_status])
+                    try:
+                        columns = row.findChildren(['td'])
+                        item_id = columns[0].strong.a.text.strip()
+                        item_status = columns[0].text.strip()
+                        if item_status.find('The consignment was delivered') or item_status.find('The consignment was put in delivery box'):
+                            item_delivered = True
+                        else:
+                            item_delivered = False
+                        date_delivered = columns[1].text.strip()
+                        output.append([item_id, item_delivered, date_delivered, item_status])
+                    except Exception as e:
+                        logging.exception(e)
+                        logging.exception(str(row))
+
 
             else:
                 print ('Country: {0}, Website has changed.'.format('Czech'))
@@ -103,15 +113,19 @@ class Fetch:
             table = search_results.get_attribute('innerHTML')
             soup = BeautifulSoup(table, 'html.parser')
             for row in soup.tbody.findChildren(['tr']):
-                columns = row.findChildren(['td'])
-                item_id = columns[1].text.strip()
-                item_status = columns[2].text.strip()
-                if stringExistsIn('Objeto entregue ao destinat.rio', item_status):
-                    item_delivered = True
-                else:
-                    item_delivered = False
-                date_delivered = columns[3].text.strip().split(' ')[0]
-                output.append([item_id, item_delivered, date_delivered, item_status])
+                try:
+                    columns = row.findChildren(['td'])
+                    item_id = columns[1].text.strip()
+                    item_status = columns[2].text.strip()
+                    if stringExistsIn('Objeto entregue ao destinat.rio', item_status):
+                        item_delivered = True
+                    else:
+                        item_delivered = False
+                    date_delivered = columns[3].text.strip().split(' ')[0]
+                    output.append([item_id, item_delivered, date_delivered, item_status])
+                except Exception as e:
+                    logging.exception(e)
+                    logging.exception(str(row))
 
         return output
 
@@ -252,15 +266,20 @@ class Fetch:
             soup = removeTagsOfClass(soup, 'hide')
 
             for row in soup.tbody.findChildren(['tr']):
-                columns = row.findChildren(['td'])
-                item_id = columns[0].text.strip()
-                item_status = columns[4].text.strip()
-                if stringExistsIn('Item delivered', item_status):
-                    item_delivered = True
-                else:
-                    item_delivered = False
-                date_delivered = columns[1].text.strip()
-                output.append([item_id, item_delivered, date_delivered, item_status])
+                try:
+                    columns = row.findChildren(['td'])
+                    item_id = columns[0].text.strip()
+                    item_status = columns[4].text.strip()
+                    if stringExistsIn('Item delivered', item_status):
+                        item_delivered = True
+                    else:
+                        item_delivered = False
+                    date_delivered = columns[1].text.strip()
+                    output.append([item_id, item_delivered, date_delivered, item_status])
+                except Exception as e:
+                    logging.exception(e)
+                    logging.exception(str(row))
+
         return output
 
     def getKuwait(self, itemId, browser):
@@ -394,20 +413,25 @@ class Fetch:
             soup = removeTagsOfClass(soup, 'hide')
 
             for t in soup.find_all('table'):
-                rows = [row for row in t.find_all('tr')]
-                item_id = rows[0].text.split(':')[1].strip()
+                try:
+                    rows = [row for row in t.find_all('tr')]
+                    item_id = rows[0].text.split(':')[1].strip()
 
-                #latest event
-                row = rows[2]
+                    #latest event
+                    row = rows[2]
 
-                columns = row.findChildren(['td'])
-                item_status = columns[2].text.strip()
-                if stringExistsIn('FINAL DELIVERY', item_status):
-                    item_delivered = True
-                else:
-                    item_delivered = False
-                date_delivered = columns[0].text.strip()
-                output.append([item_id, item_delivered, date_delivered, item_status])
+                    columns = row.findChildren(['td'])
+                    item_status = columns[2].text.strip()
+                    if stringExistsIn('FINAL DELIVERY', item_status):
+                        item_delivered = True
+                    else:
+                        item_delivered = False
+                    date_delivered = columns[0].text.strip()
+                    output.append([item_id, item_delivered, date_delivered, item_status])
+                except Exception as e:
+                    logging.exception(e)
+                    logging.exception(str(row))
+
         return output
 
     def getThailand(self, itemIds, browser):
