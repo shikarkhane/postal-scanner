@@ -74,6 +74,8 @@ class Fetch:
 
                 for row in soup.tbody.findChildren(['tr']):
                     try:
+                        row = removeEmptyTags(row)
+                        row = removeTagsOfClass(row, 'hide')
                         columns = row.findChildren(['td'])
                         item_id = columns[0].strong.a.text.strip()
                         item_status = columns[0].text.strip()
