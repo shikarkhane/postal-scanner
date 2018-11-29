@@ -10,7 +10,7 @@ def stringExistsIn(pattern, string):
 
 def removeEmptyTags(soup):
     for x in soup.find_all():
-        if len(x.text) == 0:
+        if len(x.text.strip()) == 0:
             x.extract()
     return soup
 
