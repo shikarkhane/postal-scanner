@@ -79,7 +79,8 @@ class Fetch:
                         columns = row.findChildren(['td'])
                         item_id = columns[0].strong.a.text.strip()
                         item_status = columns[0].text.strip()
-                        if item_status.find('The consignment was delivered') or item_status.find('The consignment was put in delivery box'):
+                        if stringExistsIn('The consignment was delivered', item_status) \
+                                or stringExistsIn('The consignment was put in delivery box', item_status):
                             item_delivered = True
                         else:
                             item_delivered = False
