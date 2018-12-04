@@ -1,4 +1,9 @@
 import csv
+import logging
+
+# Log everything, and send it to stderr.
+logging.basicConfig(filename="error.log",level=logging.INFO,format='%(asctime)s %(message)s')
+
 
 def getSearchDict():
     to_search = {}
@@ -17,6 +22,11 @@ def getSearchDict():
             to_search[destination].append(itemId)
     return to_search
 
+
+def utf_encode(x):
+    return x.encode('utf-8')
+
+
 def writeDictToCSV(data):
     with open('result.csv', 'w') as csvfile:
         fieldnames = ['destination', 'itemId', 'delivered', 'time', 'status']
@@ -26,5 +36,10 @@ def writeDictToCSV(data):
 
         for destination in data:
             for row in data[destination]:
-                writer.writerow({'destination': destination, 'itemId': row[0], 'delivered': row[1],
-                                 'time': row[2], 'status': row[3]})
+                try:
+                    writer.writerow({'destination': utf_encode(destination), 'itemId': utf_encode(row[0]),
+                                     'delivered': row[1], 'time': utf_encode(row[2]),
+                                     'status': utf_encode(row[3])})
+                except Exception as e:
+                    logging.exception(e)
+                    logging.exception(str(row))
